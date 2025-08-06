@@ -1,0 +1,97 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/itemAddLinearLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:id="@+id/namelabel"
+        android:paddingLeft="12dp"
+        android:text="Name:"
+        />
+
+    <EditText
+        android:id="@+id/itemname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:maxHeight="500dp"
+        android:paddingLeft="12dp"
+
+
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:id="@+id/quantitylabel"
+        android:layout_marginTop="30dp"
+        android:paddingLeft="12dp"
+
+        android:text="Quantity:"
+        />
+    <EditText
+        android:id="@+id/itemquantity"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:paddingLeft="12dp"
+
+        android:inputType="number" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:id="@+id/locationlabel"
+        android:layout_marginTop="30dp"
+        android:paddingLeft="12dp"
+
+        android:text="Location:"
+        />
+
+    <Spinner
+        android:id="@+id/locationlist"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:paddingLeft="12dp"
+
+        />
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            >
+        <Button
+            android:id="@+id/recognizeItemText"
+            android:layout_width="wrap_content"
+            android:layout_height="75dp"
+            android:paddingLeft="12dp"
+            android:text="Scan Text"
+            android:layout_marginRight="12dp"
+            android:layout_gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/additembutton" />
+
+        <Button
+            android:id="@+id/additembutton"
+            android:layout_width="wrap_content"
+            android:layout_height="75dp"
+            android:text="Save"
+            app:layout_constraintBaseline_toBaselineOf="@id/recognizeItemText"
+            app:layout_constraintStart_toEndOf="@id/recognizeItemText"
+            app:layout_constraintEnd_toEndOf="parent" />
+        />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</LinearLayout>

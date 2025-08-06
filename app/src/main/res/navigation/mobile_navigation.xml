@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/locationListContainerFragment">
+
+    <fragment
+        android:id="@+id/locationListContainerFragment"
+        android:name="com.example.neuerordner.ui.LocationListUi"
+        android:label="LocationList"
+        tools:layout="@layout/fragment_location_list" />
+
+    <fragment
+        android:id="@+id/itemContainerFragment"
+        android:name="com.example.neuerordner.ui.ItemUi"
+        android:label="Add Item"
+        tools:layout="@layout/fragment_add_item" />
+
+    <fragment
+        android:id="@+id/locationContainerFragment"
+        android:name="com.example.neuerordner.ui.LocationUi"
+        android:label="Add Location"
+        tools:layout="@layout/fragment_add_location"
+        />
+    <fragment
+        android:id="@+id/cameraScanFragment"
+        android:name="com.example.neuerordner.ui.QrCodeScan"
+        android:label="Qr-code Scan"
+        tools:layout="@layout/fragment_camera_scan"
+    />
+    <fragment
+        android:id="@+id/camerTextScannerFragment"
+        android:name="com.example.neuerordner.ui.TextRecognitionUi"
+        android:label="Text Recognition"
+        tools:layout="@layout/fragment_camera_scan"
+        />
+
+    <fragment
+        android:id="@+id/qrCodeDisplayContainerFragment"
+        android:name="com.example.neuerordner.ui.QrCodeGenerator"
+        android:label="QR-Code Display"
+        tools:layout="@layout/fragment_qr_display"
+    />
+
+    <action
+        android:id="@+id/action_global_itemContainerFragment"
+        app:destination="@id/itemContainerFragment"
+        app:launchSingleTop="true"
+        app:popUpTo="@id/mobile_navigation"
+        app:popUpToInclusive="false"
+    />
+
+    <action
+        android:id="@+id/action_global_qrCodeShowFragment"
+        app:destination="@id/qrCodeDisplayContainerFragment"
+        app:launchSingleTop="true"
+        app:popUpTo="@id/mobile_navigation"
+        app:popUpToInclusive="true"
+    />
+</navigation>

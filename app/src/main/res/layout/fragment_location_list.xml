@@ -1,0 +1,103 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="70dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:id="@+id/wrapperLinear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="1dp">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/refreshView"
+            android:layout_gravity="center"
+            android:layout_marginTop="2dp"
+        />
+
+        <TextView
+            android:id="@+id/switchView"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingBottom="4dp"
+            android:text="@string/itemset" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:id="@+id/header"
+            >
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/searchSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:showText="true"
+                android:textOn="location"
+                android:textOff="item"
+                android:checked="false"
+                />
+
+            <EditText
+                android:id="@+id/searchQuery"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Search..." />
+
+            <ImageButton
+                android:id="@+id/searchIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="20dp"
+                android:minWidth="20dp"
+                android:src="@drawable/ic_search_32"
+                android:contentDescription="Search" />
+
+        </LinearLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Center Button -->
+            <Button
+                android:id="@+id/addLocationButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:insetRight="6dp"
+                android:text="Add Location"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- Left Button -->
+            <Button
+                android:id="@+id/UpdateDatabase"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:insetRight="6dp"
+                android:text="Update"
+                app:layout_constraintBaseline_toBaselineOf="@id/addLocationButton"
+                app:layout_constraintEnd_toStartOf="@id/addLocationButton" />
+
+            <!-- Right Button -->
+            <Button
+                android:id="@+id/DumpDatabase"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dump"
+                app:layout_constraintStart_toEndOf="@id/addLocationButton"
+                app:layout_constraintBaseline_toBaselineOf="@id/addLocationButton"
+                />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+
+
+</ScrollView>

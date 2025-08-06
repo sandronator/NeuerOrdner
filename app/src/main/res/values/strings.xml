@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">NeuerOrdner</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="scanning">Scanne…</string>
+    <string name="qr_found">QR‑Code gefunden</string>
+    <string name="qr_code">QR Code</string>
+    <string name="take_photo">Scan</string>
+    <string name="itemset">Item Set</string>
+    <string name="locationset">Location Set</string>
+    <string name="nothing_found">Nothing found</string>
+    <string name="empty_query">Empty Query</string>
+
+
+</resources>
