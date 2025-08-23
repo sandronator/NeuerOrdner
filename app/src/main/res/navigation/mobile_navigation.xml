@@ -7,19 +7,19 @@
 
     <fragment
         android:id="@+id/locationListContainerFragment"
-        android:name="com.example.neuerordner.ui.LocationListUi"
+        android:name="com.example.neuerordner.ui.HomeDisplayUi"
         android:label="LocationList"
-        tools:layout="@layout/fragment_location_list" />
+        tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/itemContainerFragment"
-        android:name="com.example.neuerordner.ui.ItemUi"
+        android:name="com.example.neuerordner.ui.ItemAddUi"
         android:label="Add Item"
         tools:layout="@layout/fragment_add_item" />
 
     <fragment
         android:id="@+id/locationContainerFragment"
-        android:name="com.example.neuerordner.ui.LocationUi"
+        android:name="com.example.neuerordner.ui.AddLocationUi"
         android:label="Add Location"
         tools:layout="@layout/fragment_add_location"
         />
@@ -41,6 +41,21 @@
         android:name="com.example.neuerordner.ui.QrCodeGenerator"
         android:label="QR-Code Display"
         tools:layout="@layout/fragment_qr_display"
+    />
+
+    <fragment
+        android:id="@+id/qrCodeMassSelectContainerFragment"
+        android:name="com.example.neuerordner.ui.QrMassSelect"
+        android:label="QR-Code Generation"
+        tools:layout="@layout/fragment_mass_select"
+    />
+
+    <action
+        android:id="@+id/action_global_qr_mass_scan"
+        app:destination="@+id/qrCodeMassSelectContainerFragment"
+        app:launchSingleTop="true"
+        app:popUpTo="@id/mobile_navigation"
+        app:popUpToInclusive="false"
     />
 
     <action

@@ -166,6 +166,7 @@ public class QrCodeScan extends Fragment {
 
                     InputImage image = InputImage.fromMediaImage(mediaImage, imageProxy.getImageInfo().getRotationDegrees());
 
+                    //##################### REMOVAL OF NAME ######## ID ONLY ###########################
                     scanner.process(image)
                             .addOnSuccessListener(barcodes -> {
                                 for (Barcode barcode : barcodes) {

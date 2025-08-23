@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,10 +14,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -28,19 +28,18 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 
+import com.beust.ah.A;
 import com.example.neuerordner.data.ActiveLocation;
-import com.example.neuerordner.data.AppDatabase;
-import com.example.neuerordner.data.CreateDatabase;
 import com.example.neuerordner.data.DatabaseService;
 import com.example.neuerordner.data.FileService;
 import com.example.neuerordner.data.GlobalViewModel;
 import com.example.neuerordner.data.Item;
 import com.example.neuerordner.data.Location;
+import com.example.neuerordner.data.NameAccess;
 import com.example.neuerordner.data.RegexSearch;
 import com.example.neuerordner.R;
+import com.example.neuerordner.utility.NavigationUtility;
 import com.google.gson.reflect.TypeToken;
 import com.example.neuerordner.utility.ItemUtility;
 
@@ -49,19 +48,21 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-public class LocationListUi extends Fragment {
+public class HomeDisplayUi<E> extends Fragment {
     private GlobalViewModel vm;
     private boolean isSetLocation = true;
-    private AppDatabase db;
     private List<Location> locations = Collections.emptyList();
     private RegexSearch regexSearch;
-    private boolean seachLocation = false;
+    private boolean searchLocations = false;
     private String uri = null;
     private static final String WRITEPERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
@@ -69,6 +70,10 @@ public class LocationListUi extends Fragment {
 
     private ActivityResultLauncher<String> folderPickerLauncher;
     private ItemUtility _itemUtility = null;
+    private DatabaseService _dbService;
+    private List<Item> itemList = new ArrayList<>();
+    private NavigationUtility _navUtil;
+
 
 
     // ↑ Feld im Fragment
@@ -94,7 +99,7 @@ public class LocationListUi extends Fragment {
     private LinearLayout bodyLayout;
     private LinearLayout containerLayout;
     boolean activeLoc = false;
-    public LocationListUi() { /* required empty ctor */ }
+    public HomeDisplayUi() { /* required empty ctor */ }
 
     private void startChooseDirectoryIntent() {
         Intent folderDumpingIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -124,7 +129,7 @@ public class LocationListUi extends Fragment {
                         TypeToken<Map<String, List<Item>>> ttoken = new TypeToken<Map<String, List<Item>>>() {};
                         Object fetchedObject = fileService.fetchJson(ttoken);
                         Map<String, List<Item>> locationItems = (Map<String, List<Item>>) fetchedObject;
-                        DatabaseService databaseService = new DatabaseService(db);
+                        DatabaseService databaseService = new DatabaseService(requireContext());
 
                         switch (which) {
                             case (0):
@@ -162,28 +167,26 @@ public class LocationListUi extends Fragment {
                         Toast.makeText(requireContext(), "Not Granted", Toast.LENGTH_SHORT).show();
                     }
                 });
-
-
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // ----- inflate & basic setup ----------------------------------------------------------
-        View root = inflater.inflate(R.layout.fragment_location_list, container, false);
+        View root = inflater.inflate(R.layout.fragment_home, container, false);
         containerLayout = root.findViewById(R.id.wrapperLinear);
         // create a dedicated body-holder that sits *after* the static header
         bodyLayout = new LinearLayout(requireContext());
         bodyLayout.setOrientation(LinearLayout.VERTICAL);
         containerLayout.addView(bodyLayout);
-        db = CreateDatabase.fetch(requireContext());
         vm = new ViewModelProvider(requireActivity()).get(GlobalViewModel.class);
-        regexSearch = new RegexSearch(db);
+        _dbService = new DatabaseService(requireContext());
+        regexSearch = new RegexSearch(_dbService);
 
         root.post(() -> {
-            _itemUtility = new ItemUtility(db, requireContext(), root);
+            _itemUtility = new ItemUtility(_dbService, requireContext(), root);
         });
 
-        locations = db.locationDAO().getAll();
+        locations = _dbService.getAllLocations();
 
         folderPickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.CreateDocument("application/json"),
@@ -194,7 +197,7 @@ public class LocationListUi extends Fragment {
                     try {
                         OutputStream outputStream = getContext().getContentResolver().openOutputStream(uri);
                         FileService fileService = new FileService(outputStream);
-                        fileService.dump(DatabaseService.getAllLocationsAndItems(db), outputStream);
+                        fileService.dump(_dbService.getAllLocationsAndItems(), outputStream);
 
                     } catch (IOException ioException) {
                         Toast.makeText(requireContext(), "Cant Create File on desired Location", Toast.LENGTH_SHORT).show();
@@ -208,30 +211,63 @@ public class LocationListUi extends Fragment {
         ImageButton searchIcon = root.findViewById(R.id.searchIcon);
         Button addLocationBtn = root.findViewById(R.id.addLocationButton);
         ImageButton refreshButton = root.findViewById(R.id.refreshView);
-        Button updateButton = root.findViewById(R.id.UpdateDatabase);
-        Button dumpButton = root.findViewById(R.id.DumpDatabase);
+        ImageButton dBResourceButton = root.findViewById(R.id.db_menu);
+        ImageButton ascendingButton = root.findViewById(R.id.sortAscending);
+        ImageButton descendingButton = root.findViewById(R.id.sortDescending);
+
+        ToggleButton dateSort = root.findViewById(R.id.SortByDatetimeOffset);
+        Comparator<Location> compareByDate = (l1, l2) -> l1.CreationDate.compareTo(l2.CreationDate);
+        descendingButton.setOnClickListener(l -> {
+            if (dateSort.isChecked()) {
+
+                Collections.sort(locations, compareByDate);
+            } else {
+                Collections.sort(locations, Collections.reverseOrder());
+            }
+            renderBody();
+        });
+
+        ascendingButton.setOnClickListener(l -> {
+            if (dateSort.isChecked()) {
+                Collections.sort(locations, compareByDate.reversed());
+            } else {
+                Collections.sort(locations);
+            }
+            renderBody();
+        });
 
         // refreshView on Click
         refreshButton.setOnClickListener(click -> {
             vm.setActionLocation(null);
             vm.setGlobalItems(new ArrayList<>());
-            locations = db.locationDAO().getAll();
+            locations = _dbService.getAllLocations();
             renderBody();
         });
 
         // switch between location / item search
         switchCompat.setOnCheckedChangeListener((btn, checked) -> {
-            seachLocation = checked;
+            searchLocations = checked;
             String itemString = getString(R.string.itemset);
             String locationString = getString(R.string.locationset);
             switchView.setText(checked ? locationString : itemString);
         });
 
-        updateButton.setOnClickListener(l ->
-            selectUpdateFile.launch(new String[] { "application/json" }));
-
-        dumpButton.setOnClickListener(l -> {
-            folderPickerLauncher.launch("DatabaseSafe_NeuerOrdner");
+        dBResourceButton.setOnClickListener(l -> {
+            PopupMenu popUpMenu = new PopupMenu(requireContext(), l);
+            popUpMenu.getMenuInflater().inflate(R.menu.db_resource_menu, popUpMenu.getMenu());
+            popUpMenu.setOnMenuItemClickListener(menuItem -> {
+                if (menuItem.getItemId() == R.id.UpdateDatabase) {
+                    selectUpdateFile.launch(new String[] { "application/json" });
+                    return true;
+                } else if (menuItem.getItemId() == R.id.DumpDatabase) {
+                    folderPickerLauncher.launch("DatabaseSafe_NeuerOrdner");
+                    return true;
+                } else {
+                    Toast.makeText(requireContext(), "Nothing clicked", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            });
+            popUpMenu.show();
         });
         // search action
         searchIcon.setOnClickListener(v -> {
@@ -245,7 +281,7 @@ public class LocationListUi extends Fragment {
                 return; // 🚪 bail out – no query
             }
 
-            HashMap<String, String> results = regexSearch.search(query, seachLocation);
+            List<? extends NameAccess> results = regexSearch.search(query, searchLocations);
             if (results.isEmpty()) {
                 Toast.makeText(requireContext(), "Nothing Found", Toast.LENGTH_SHORT).show();
                 return; // nothing found
@@ -254,37 +290,30 @@ public class LocationListUi extends Fragment {
 
             // --- rebuild location list based on results -----------------------------------
             locations = new ArrayList<>();
-            if (seachLocation) {
-                for (Map.Entry<String, String> e : results.entrySet()) {
+
+            if (searchLocations) {
+                for (var result : results) {
                     Location l = new Location();
-                    l.Id = e.getKey();
-                    l.Name = e.getValue();
+                    l.Id = result.getid();
+                    l.Name = result.getname();
                     locations.add(l);
+                    itemList = new ArrayList<>();
                 }
+
             } else { // searching items – collect unique location IDs
-                HashSet<String> seenItem = new HashSet<>();
-                HashSet<String> seenLocation = new HashSet<>();
-                List<Item> allItems = db.itemDao().getSyncedAll();
-
-                for (Map.Entry<String, String> e : results.entrySet()) {
-                    String itemId = e.getKey();
-
-                    if (seenItem.contains(itemId)) {
-                        continue;
+                Set<String> locationIds = new HashSet<>();
+                locations = new ArrayList<>();
+                for (var result: results) {
+                    locationIds.add(result.getLocationId());
+                    Item item = _dbService.getItem(result.getid());
+                    itemList.add(item);
                     }
-                    seenItem.add(itemId);
-
-                    for (Item i: allItems) {
-                        if (i.Id.equals(itemId)) {
-                            if (!seenLocation.contains(i.LocationId)) {
-                                seenLocation.add(i.LocationId);
-                                Location found = db.locationDAO().get(i.LocationId);
-                                locations.add(found);
-                            }
-                        }
-                    }
+                for (String locationId: locationIds) {
+                    locations.add(_dbService.getLocation(locationId));
                 }
             }
+
+
             vm.setActionLocation(null);
             vm.setGlobalItems(null);
             renderBody();
@@ -292,8 +321,7 @@ public class LocationListUi extends Fragment {
 
         // add-location navigation
         addLocationBtn.setOnClickListener(v -> {
-            NavController nav = Navigation.findNavController(v);
-            nav.navigate(R.id.locationContainerFragment);
+            _navUtil.navigateWithoutBundle(R.id.locationContainerFragment);
         });
 
         // style tweaks
@@ -307,33 +335,41 @@ public class LocationListUi extends Fragment {
         return root;
     }
 
+    @Override
+    public void onViewCreated(@NonNull View root, Bundle savedInstanceState) {
+        super.onViewCreated(root, savedInstanceState);
+        _navUtil = new NavigationUtility(root);
+    }
     /**
      * Regenerates the list of location rows + nested item views inside {@link #bodyLayout}.
      */
     private void renderBody() {
         bodyLayout.removeAllViews();
+        removeAdChildrenNow();
 
         // if we navigated in with an "active" location, show only that
         ActiveLocation active = vm.getActionLocation().getValue();
         if (active != null) {
             Location l = new Location();
-            l.Id = active.Id; l.Name = active.Name;
+            l.Id = active.Id;
+            l.Name = active.Name;
             locations.clear();
             locations = new ArrayList<>();
             locations.add(l);
-            try {
-            } catch (NoSuchElementException e) {
-                Toast.makeText(requireContext(), "List is empty", Toast.LENGTH_SHORT).show();
-            }
+
         }
         if (bodyLayout.getChildCount() > 0) {
             return;
         }
         for (int i = 0; i < locations.size(); i++) {
             Location loc = locations.get(i);
-
             loc.Id = loc.Id.trim().toLowerCase();
-            List<Item> items = db.itemDao().getAllFromLocationSynced(loc.Id);
+            final List<Item> itemForLocation;
+            if (itemList == null || itemList.isEmpty()) {
+                itemForLocation = _dbService.getAllItemsFromLocation(loc.Id);
+            } else {
+                itemForLocation = itemList.stream().filter(item -> item.LocationId.equals(loc.getid())).collect(Collectors.toList());
+            }
             LinearLayout superHolder = new LinearLayout(requireContext());
 
             superHolder.setVisibility(View.GONE);
@@ -364,11 +400,53 @@ public class LocationListUi extends Fragment {
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
             );
-            //Delete Location Button
-            ImageButton deleteLocButton = new ImageButton(requireContext());
-            Drawable trashBin = ContextCompat.getDrawable(requireContext(), R.drawable.ic_trash_32).mutate();
-            deleteLocButton.setImageDrawable(trashBin);
-            deleteLocButton.setLayoutParams(wrappedTextParams);
+
+            ImageButton locationMenuButton = new ImageButton(requireContext());
+            Drawable locationMenuParentDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.outline_arrow_drop_down_24);
+            locationMenuButton.setLayoutParams(wrappedTextParams);
+            locationMenuButton.setImageDrawable(locationMenuParentDrawable);
+
+            locationMenuButton.setOnClickListener(v -> {
+                PopupMenu popupMenu = new PopupMenu(requireContext(), v);
+                popupMenu.getMenuInflater().inflate(R.menu.location_menu, popupMenu.getMenu());
+                popupMenu.setOnMenuItemClickListener(menuItem -> {
+                    if (menuItem.getItemId() == R.id.qr_code) {
+
+                        ArrayList<Location> singleLocationsArray = new ArrayList<>();
+                        singleLocationsArray.add(loc);
+
+                        Bundle singleBundle = new Bundle();
+                        singleBundle.putParcelableArrayList("KEY", singleLocationsArray);
+
+                        _navUtil.navigateWithBundle(R.id.action_global_qrCodeShowFragment, singleBundle);
+                        return true;
+                    }
+
+                    if (menuItem.getItemId() == R.id.delete_location) {
+                        _itemUtility.alertDialogCreation("Delete Location", "Changes cant be undone", "Delete", "Cancel", () -> {
+                            _dbService.deleteLocation(loc);
+                            headerView.removeAllViews();
+                            superHolder.removeAllViews();
+                            return null;
+                        }, () -> {
+                            return null;
+                        }).show();
+                        return true;
+                    }
+
+                    if (menuItem.getItemId() == R.id.update_location) {
+                        vm.setUpdateLocation(loc);
+                        _navUtil.navigateWithoutBundle(R.id.locationContainerFragment);
+                        return true;
+                    }
+                    if (menuItem.getItemId() == R.id.button_mass_select) {
+                        _navUtil.navigateWithoutBundle(R.id.action_global_qr_mass_scan);
+                        return true;
+                    }
+                    return false;
+                });
+                popupMenu.show();
+            });
 
             // location label
             TextView displayLoc = new TextView(requireContext());
@@ -379,28 +457,8 @@ public class LocationListUi extends Fragment {
             headerView.addView(displayLoc);
 
 
-            //QR-Code
-            ImageButton showQr = new ImageButton(requireContext());
-            Drawable qrIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_qrcode_24).mutate();
-            showQr.setImageDrawable(qrIcon);
-            showQr.setBackground(null);
-            ViewGroup.MarginLayoutParams mp = new ViewGroup.MarginLayoutParams(200, 200);
-            mp.setMargins(35, 0, 0, 0);
-            showQr.setLayoutParams(mp);
-            showQr.setScaleType(ImageView.ScaleType.FIT_XY);
-            showQr.setForegroundGravity(Gravity.TOP);
-            showQr.setOnClickListener(qv -> {
-                ActiveLocation al = new ActiveLocation();
-                al.Id = loc.Id;
-                al.Name = loc.Name;
-                vm.setActionLocation(al);
 
-                NavController nav = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main);
-                nav.navigate(R.id.action_global_qrCodeShowFragment);
-            });
-
-            headerView.addView(deleteLocButton);
-            headerView.addView(showQr);
+            headerView.addView(locationMenuButton);
             // expandable item holder – starts hidden
             displayLoc.setOnClickListener(click -> {
 
@@ -412,12 +470,12 @@ public class LocationListUi extends Fragment {
                 if (superHolder.getChildCount() > 0) {
                     return;
                 }
-                if (items == null || items.isEmpty()) {
+                if (itemForLocation == null || itemForLocation.isEmpty()) {
                     Toast.makeText(requireContext(), "No Items", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                for (Item it : items) {
+                for (Item it : itemForLocation) {
                     LinearLayout itemHolder = new LinearLayout(requireContext());
                     itemHolder.setOrientation(LinearLayout.VERTICAL);
                     itemHolder.setVisibility(View.VISIBLE);
@@ -444,27 +502,27 @@ public class LocationListUi extends Fragment {
             bodyLayout.addView(headerView);
             bodyLayout.addView(superHolder);
 
-            deleteLocButton.setOnClickListener(click -> {
-                _itemUtility.alertDialogCreation("Delete Location", "Changes cant be undone", "Delete", "Cancel", () -> {
-                    db.locationDAO().delete(loc);
-                    headerView.removeAllViews();
-                    superHolder.removeAllViews();
-                    return null;
-                }, () -> {
-                    return null;
-                }).show();
-
-            });
-
 
         }
     }
 
+    private void removeAdChildrenNow() {
+        var fm = getChildFragmentManager();
+        var tx = fm.beginTransaction();
+        for (var f : fm.getFragments()) {
+            if (f instanceof Ad )  {
+                tx.remove(f);
+            }
+        }
+        // commit synchronously so no stale fragments remain
+        tx.commitNowAllowingStateLoss();
+    }
+
+
     @Override
     public void onPause() {
         super.onPause();
-        locations = db.locationDAO().getAll();
-        renderBody();
+
 
     }
     @Override

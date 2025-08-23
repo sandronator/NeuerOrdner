@@ -31,7 +31,6 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 public class DatabaseTest {
 
-    private AppDatabase db;
     private DatabaseService _dbService;
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private Random random = new Random();
@@ -40,16 +39,14 @@ public class DatabaseTest {
     @Before
     public void setUp() {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase.class)
-                .allowMainThreadQueries() // nur für Tests
-                .build();
 
-        _dbService = new DatabaseService(db);
+
+        _dbService = new DatabaseService(context);
     }
 
     @After
     public void tearDown() {
-        db.close();
+        _dbService.close();
     }
 
     public void insertion(int locationSize, int itemSize) {
@@ -98,7 +95,7 @@ public class DatabaseTest {
 
         for(var i = 0; i < locations; i++) {
             String locationName = generateRandomString(5 + random.nextInt(15));
-            Location location = new Location(UUID.randomUUID().toString(), locationName);
+            Location location = new Location(UUID.randomUUID().toString(), locationName, OffsetDateTime.now());
             List<Item> itemList = new ArrayList<Item>();
 
             for (var j = 0; j < items; j++) {

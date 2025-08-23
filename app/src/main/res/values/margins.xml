@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="default_right">2dp</dimen>
+    <dimen name="default_bottom_layout">70dp</dimen>
+    <dimen name="qr_code_margin">20</dimen>
+
+</resources>

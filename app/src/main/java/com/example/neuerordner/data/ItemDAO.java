@@ -25,11 +25,14 @@ public interface ItemDAO {
     @Query("DELETE FROM Item Where Id = :itemId")
     void delete(String itemId);
 
-    @Query("SELECT * FROM item Where Id = :itemId LIMIT 1")
-    Item get(String itemId);
+    @Query("SELECT * FROM item Where Id = :id LIMIT 1")
+    Item get(String id);
+
+    @Query("SELECT * FROM item Where Id = :id LIMIT 1")
+    LiveData<Item> getLiveData(String id);
 
     @Update
-    void update(Item item);
+    Integer update(Item item);
 
     @Query("SELECT * FROM item WHERE LocationId = :locId")
     LiveData<List<Item>> getAllFromLocation(String locId);

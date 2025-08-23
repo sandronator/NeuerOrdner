@@ -10,6 +10,7 @@ public class GlobalViewModel extends ViewModel {
     private  MutableLiveData<ActiveLocation> activeLocation = new MutableLiveData<ActiveLocation>();
     private MutableLiveData<List<Item>> globalItems = new MutableLiveData<List<Item>>();
     private MutableLiveData<String> textMlScanned = new MutableLiveData<>();
+    private MutableLiveData<Location> updateLocation = new MutableLiveData<>();
 
     public LiveData<List<Item>> getGlobalItems() {
         return globalItems;
@@ -25,5 +26,13 @@ public class GlobalViewModel extends ViewModel {
     }
     public LiveData<String> getTextMlScanned() {return textMlScanned;}
     public void setTextMlScanned(String text) {this.textMlScanned.setValue(text);}
+
+    public void setUpdateLocation(Location location) {
+        this.updateLocation.setValue(location);
+    }
+    public LiveData<Location> getUpdateLocation() {
+        return this.updateLocation;
+    }
+
 
 }

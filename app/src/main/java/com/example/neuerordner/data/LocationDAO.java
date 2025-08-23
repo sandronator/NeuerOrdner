@@ -23,7 +23,7 @@ public interface LocationDAO {
     void delete(String id);
 
     @Update
-    void update(Location location);
+    int update(Location location);
 
     @Query("SELECT * FROM location WHERE Id = :locId")
     Location get(String locId);

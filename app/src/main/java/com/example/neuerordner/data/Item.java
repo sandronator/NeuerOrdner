@@ -6,6 +6,7 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 
@@ -22,7 +23,7 @@ import java.time.format.DateTimeParseException;
 
 
 )
-public class Item implements NameAccess{
+public class Item implements NameAccess, Serializable {
     @PrimaryKey
     @NonNull
 
@@ -50,10 +51,10 @@ public class Item implements NameAccess{
         return this.Id;
     }
 
+    @Override
     public String getLocationId() {
-        return LocationId;
+        return this.LocationId;
     }
-
     public void setLocationId(String id) {
         this.LocationId = id;
     }

@@ -20,7 +20,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.nativead.NativeAd;
 import com.google.android.gms.ads.nativead.NativeAdView;
-import com.google.firebase.components.BuildConfig;
+import com.example.neuerordner.BuildConfig;
 
 public class Ad extends Fragment {
     // ← This must be a *Native* ad unit ID, not the “~” App ID.
@@ -46,6 +46,7 @@ public class Ad extends Fragment {
             NativeAdView adView = root.findViewById(R.id.native_ad_view);
             loadNativeAd(adView);
         }
+
     }
 
     private void loadNativeAd(NativeAdView adView) {

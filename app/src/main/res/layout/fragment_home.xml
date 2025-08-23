@@ -2,7 +2,7 @@
     android:id="@+id/scrollContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="70dp"
+    android:paddingBottom="100dp"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
@@ -17,6 +17,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/refreshView"
             android:layout_gravity="center"
+            android:paddingRight="20dp"
             android:layout_marginTop="2dp"
         />
 
@@ -26,6 +27,7 @@
             android:layout_height="match_parent"
             android:paddingBottom="4dp"
             android:text="@string/itemset" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -61,42 +63,63 @@
 
         </LinearLayout>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:id="@+id/boxMenu"
+          android:orientation="horizontal"
+          android:gravity="center"
+          >
 
-            <!-- Center Button -->
-            <Button
-                android:id="@+id/addLocationButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:insetRight="6dp"
-                android:text="Add Location"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+          <Button
+              android:id="@+id/addLocationButton"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Add Location"
+              android:layout_marginRight="@dimen/default_right"
+          />
 
-            <!-- Left Button -->
-            <Button
-                android:id="@+id/UpdateDatabase"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:insetRight="6dp"
-                android:text="Update"
-                app:layout_constraintBaseline_toBaselineOf="@id/addLocationButton"
-                app:layout_constraintEnd_toStartOf="@id/addLocationButton" />
+          <ImageButton
+              android:layout_width="wrap_content"
+              android:layout_height="match_parent"
+              android:id="@+id/db_menu"
+              android:src="@drawable/outline_check_in_out_24"
+              android:minHeight="20dp"
+              android:minWidth="20dp"
+              android:layout_marginRight="@dimen/default_right"
+          />
 
-            <!-- Right Button -->
-            <Button
-                android:id="@+id/DumpDatabase"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Dump"
-                app:layout_constraintStart_toEndOf="@id/addLocationButton"
-                app:layout_constraintBaseline_toBaselineOf="@id/addLocationButton"
-                />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        <ToggleButton
+              android:id="@+id/SortByDatetimeOffset"
+              android:layout_width="60dp"
+              android:layout_height="match_parent"
+              android:layout_gravity="right"
+              android:layout_marginRight="@dimen/default_right"
+              android:textOff="Date"
+              android:textOn="Date" />
+
+        <ImageButton
+            android:id="@+id/sortAscending"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/baseline_arrow_upward_24"
+            android:minHeight="20dp"
+            android:minWidth="20dp"
+            android:layout_marginRight="@dimen/default_right"
+        />
+
+        <ImageButton
+            android:id="@+id/sortDescending"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/baseline_arrow_downward_24"
+            android:minHeight="20dp"
+            android:minWidth="20dp"
+        />
+
+        </LinearLayout>
+
+
     </LinearLayout>
 
 

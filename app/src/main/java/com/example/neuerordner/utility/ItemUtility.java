@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -14,6 +16,7 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 
 import com.example.neuerordner.data.AppDatabase;
+import com.example.neuerordner.data.DatabaseService;
 import com.example.neuerordner.data.Item;
 import com.example.neuerordner.R;
 
@@ -22,18 +25,19 @@ import java.util.function.Supplier;
 
 public class ItemUtility {
     private final NavigationUtility _navUtil;
-    private final AppDatabase _db;
+    private final DatabaseService _dbService;
     private final Context _context;
     private static final Integer NORMAL_TEXT_SIZE = 15;
     private static final Integer LABEL_TEXT_SIZE = 20;
     private static final Integer[] PADDING_TEXT_VIEW = {10, 15, 0, 0};
 
-    public ItemUtility(AppDatabase db, Context context, View root) {
-        _db = db;
+    public ItemUtility(DatabaseService dbService, Context context, View root) {
+        _dbService = dbService;
         _context = context;
         _navUtil = new NavigationUtility(root);
     }
 
+    //WRAPPER FOR LOCATION DISPLAY
     public void makeItemShowCase(Item item, LinearLayout itemHolder, LinearLayout superHolder) {
 
         if (itemHolder.getChildCount() > 0) {
@@ -51,8 +55,8 @@ public class ItemUtility {
         editBtn.setOnClickListener(v -> {
             Bundle b = new Bundle();
             b.putString("name", item.Name);
-            b.putString("itemid", item.Id);
-            b.putString("locId", item.LocationId);
+            b.putString("id", item.Id);
+            b.putString("locationId", item.LocationId);
             b.putInt("quantity", item.Quantity);
             _navUtil.navigateWithBundle(R.id.action_global_itemContainerFragment, b);
         });
@@ -77,7 +81,7 @@ public class ItemUtility {
             new AlertDialog.Builder(_context).setTitle("Delete")
                     .setMessage("Deletion cant be unchanged")
                     .setPositiveButton("Delete", (dialog, which) -> {
-                        _db.itemDao().delete(item);
+                        _dbService.deleteItem(item);
                         itemHolder.removeAllViews();
 
                     }).setNegativeButton("Cancel", (dialog, which) -> {
@@ -110,9 +114,6 @@ public class ItemUtility {
                     callbackNegative.get();
                     dialog.dismiss();
                 })).create();
-
-
-
     }
 
 }

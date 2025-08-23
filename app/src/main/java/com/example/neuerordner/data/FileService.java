@@ -47,8 +47,8 @@ public class FileService<K, V, T> {
         return reader == null ? new Gson().fromJson("{}", ttoken.getType()) : gson.fromJson(reader, ttoken.getType());
     }
 
-    public void dump(Map<String, List<Item>> mapList, OutputStream outputStream) throws IOException {
-        FileService<String, List<Item>, Map<String, List<Item>>> file = new FileService(outputStream);
+    public void dump(Map<Location, List<Item>> mapList, OutputStream outputStream) throws IOException {
+        FileService<Location, List<Item>, Map<Location, List<Item>>> file = new FileService(outputStream);
         file.Write(mapList);
     }
 

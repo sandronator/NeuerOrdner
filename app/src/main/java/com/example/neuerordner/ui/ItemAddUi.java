@@ -20,6 +20,7 @@ import androidx.navigation.Navigation;
 import androidx.room.Room;
 
 import com.example.neuerordner.data.AppDatabase;
+import com.example.neuerordner.data.DatabaseService;
 import com.example.neuerordner.data.GlobalViewModel;
 import com.example.neuerordner.data.Item;
 import com.example.neuerordner.data.Location;
@@ -32,35 +33,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class ItemUi extends Fragment {
+public class ItemAddUi extends Fragment {
     private String locationId = "";
+    private String itemId = "";
     private GlobalViewModel vm;
-    private EditText name;
+    private EditText editTextName;
+    private EditText editTextQuantity;
     private String recognizedText;
-    public ItemUi() {
+    private DatabaseService _dbService;
 
-    }
+    public ItemAddUi() {}
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) {
         // Inflate das Layout
         View root = inflater.inflate(R.layout.fragment_add_item, viewGroup, false);
 
-        // Initialisiere DB (optional, falls noch nicht gesetzt)
-        var db = Room.databaseBuilder(requireContext(), AppDatabase.class, "app-db").allowMainThreadQueries().build();
-
         vm = new ViewModelProvider(requireActivity()).get(GlobalViewModel.class);
         recognizedText = vm.getTextMlScanned().getValue();
-        // Views binden
+        _dbService = new DatabaseService(requireContext());
+
         LinearLayout itemContainer = root.findViewById(R.id.itemAddLinearLayout);
-        name = itemContainer.findViewById(R.id.itemname);
-        EditText itemQuantity = itemContainer.findViewById(R.id.itemquantity);
+        editTextName = itemContainer.findViewById(R.id.itemname);
+        editTextQuantity = itemContainer.findViewById(R.id.itemquantity);
         Spinner spinner = itemContainer.findViewById(R.id.locationlist);
         Button saveButton = itemContainer.findViewById(R.id.additembutton);
         Button recognizeText = itemContainer.findViewById(R.id.recognizeItemText);
 
         // Lade Locations aus DB
-        List<Location> locations = db.locationDAO().getAll();
+        List<Location> locations = _dbService.getAllLocations();
         LinkedHashMap<String, String> locationMap = new LinkedHashMap<>();
         for (Location loc : locations) {
             locationMap.put(loc.Id, loc.Name);
@@ -76,14 +77,18 @@ public class ItemUi extends Fragment {
         spinner.setAdapter(adapter);
 
         if (getArguments() != null) {
-            String bundleName = getArguments().getString("name");
-            name.setText(bundleName != null ? bundleName : "");
-            Integer bundleQuantity = getArguments().getInt("quantity");
-            itemQuantity.setText(bundleQuantity != null ? Integer.toString(bundleQuantity) : "0" );
-            String bundleLocationId = getArguments().getString("locId");
+            String itemName = getArguments().getString("name");
+            itemId = getArguments().getString("id");
+            locationId = getArguments().getString("locationId");
+            Integer quantity = getArguments().getInt("quantity");
+
+            editTextName.setText(itemName);
+            editTextQuantity.setText(Integer.toString(quantity));
+
             int counter = 0;
+
             for (Map.Entry<String, String> entry: adapter) {
-                if (entry.getKey().equals(bundleLocationId))  {
+                if (entry.getKey().equals(locationId))  {
                     spinner.setSelection(counter);
                 }
                 counter++;
@@ -91,11 +96,9 @@ public class ItemUi extends Fragment {
         }
 
         if (recognizedText != null && !recognizedText.isEmpty()) {
-            name.setText(recognizedText);
+            editTextName.setText(recognizedText);
         }
 
-
-        //########################################################################//
 
         // Spinner-Auswahl behandeln
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -120,22 +123,27 @@ public class ItemUi extends Fragment {
 
         // Speichern-Button
         saveButton.setOnClickListener(v -> {
-            String nameString = name.getText().toString().trim();
-            String quantityText = itemQuantity.getText().toString().trim();
+            String nameString = editTextName.getText().toString().trim();
+            String quantityText = editTextQuantity.getText().toString().trim();
 
             // Validierung
             if (nameString.isEmpty() || quantityText.isEmpty() || locationId.isEmpty()) {
-                Toast.makeText(requireContext(), "Required Items missing", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Not Completed", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             try {
                 int quantityInt = Integer.parseInt(quantityText);
                 OffsetDateTime now = OffsetDateTime.now();
-                String itemId = UUID.randomUUID().toString();
                 Item item = new Item(itemId, locationId, nameString, quantityInt, now);
-                db.itemDao().insert(item);
-                Toast.makeText(requireContext(), "Created Item", Toast.LENGTH_SHORT).show();
+                if (itemId != null) {
+                    _dbService.uddateItem(item);
+                    Toast.makeText(requireContext(), "Successfull Updated Item", Toast.LENGTH_SHORT).show();
+                } else {
+                    item.Id = UUID.randomUUID().toString();
+                    _dbService.addItem(item);
+                    Toast.makeText(requireContext(), "Successfull Created Item", Toast.LENGTH_SHORT).show();
+                }
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main);
                 navController.navigate(R.id.locationListContainerFragment);
 
@@ -161,10 +169,15 @@ public class ItemUi extends Fragment {
             vm = new ViewModelProvider(requireActivity()).get(GlobalViewModel.class);
         }
         recognizedText = vm.getTextMlScanned().getValue();
-        if (recognizedText != null && !recognizedText.isEmpty() && name != null) {
-            name.setText(recognizedText);
+        if (recognizedText != null && !recognizedText.isEmpty() && editTextName != null) {
+            editTextName.setText(recognizedText);
         }
-
         vm.setTextMlScanned(null);
     }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        vm.setUpdateLocation(null);
+    }
+
 }
