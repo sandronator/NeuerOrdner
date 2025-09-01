@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.UUID;
 
 @Entity(
         indices = {@Index(value = {"Name"}, unique = true)}
@@ -35,6 +36,12 @@ public class Location implements NameAccess, Comparable<Location>, Parcelable {
     }
 
     public Location() {
+    }
+
+    public Location(String name) {
+        this.Name = name;
+        this.CreationDate = OffsetDateTime.now();
+        this.Id = UUID.randomUUID().toString();
     }
 
     protected Location(Parcel in) {

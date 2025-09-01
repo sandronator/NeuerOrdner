@@ -1,6 +1,7 @@
 package com.example.neuerordner.data;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
@@ -130,8 +131,13 @@ public class DatabaseService<T> {
             item.LocationId = location.Id;
             _db.itemDao().insert(item);
         });
+
+        _db.locationDAO().getAll().forEach(l -> {
+            Log.d("Location Name After insert: ", l.Name);
+        });
+
     }
-    public void EraseAndSetupNew(Map<Location, List<Item>> locationItems) throws Exception {
+    public void EraseAndSetupNew(Map<String, List<Item>> locationItems) {
         _db.locationDAO().getAll().forEach(location -> {
             _db.locationDAO().delete(location);
         });
@@ -140,40 +146,43 @@ public class DatabaseService<T> {
             _db.itemDao().delete(item);
         });
 
-        InsertIntoDatabase(locationItems);
+        InsertHashMap(locationItems);
     }
 
-    public void UpdateAndInsert(Map<Location, List<Item>> locationItems) throws Exception {
+    public void UpdateAndInsert(Map<String, List<Item>> locationItems) {
         UpdateDatabase(locationItems);
-        InsertIntoDatabase(locationItems);
+        InsertHashMap(locationItems);
     }
 
-    public void InsertIntoDatabase(Map<Location, List<Item>> locationItems) throws Exception {
+    private boolean LocationExist(String locationName) {
+        Set<String> locations = _db.locationDAO().getAll().stream().map(l -> l.Name).collect(Collectors.toSet());
+        if (locations.contains(locationName)) return true;
+        return false;
+    }
+
+    public void InsertHashMap(Map<String, List<Item>> locationItems) {
         if (locationItems.isEmpty()) {
             return;
         }
-        Set<String> locationNamesInDbSet = getAllLocations().stream().map(location -> location.Name).collect(Collectors.toSet());
 
-
-        if (locationNamesInDbSet.isEmpty()) {
-            locationItems.forEach((location, itemList) -> {
-                InsertLocationItemEntry(location, itemList);
-            });
-        } else {
-            // Redundanz Check
-            locationItems.forEach((location, itemList) -> {
-                if (!locationNamesInDbSet.contains(location.Name)) {
-                    InsertLocationItemEntry(location, itemList);
+        try {
+            for (Map.Entry<String, List<Item>> entry: locationItems.entrySet()) {
+                String locName = entry.getKey();
+                if (LocationExist(locName)) {
+                    continue;
                 }
-            });
+                Location location = new Location(locName);
+                InsertLocationItemEntry(location, entry.getValue());
+            }
+        } catch (Exception e) {
+            Log.e("Error Inserting HashMap", e.toString());
         }
-
     }
     public void close()  {
         this._db.close();
     }
 
-    public void UpdateDatabase(Map<Location, List<Item>> locationItems) throws Exception {
+    public void UpdateDatabase(Map<String, List<Item>> locationItems) {
          if (locationItems.isEmpty()) {
              return;
          }

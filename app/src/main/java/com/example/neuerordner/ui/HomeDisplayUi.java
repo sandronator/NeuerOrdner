@@ -126,14 +126,15 @@ public class HomeDisplayUi<E> extends Fragment {
                         Uri convertedUri = Uri.parse(uri);
                         InputStream inputStream = getContext().getContentResolver().openInputStream(convertedUri);
                         FileService fileService = new FileService(inputStream);
-                        TypeToken<Map<String, List<Item>>> ttoken = new TypeToken<Map<String, List<Item>>>() {};
+                        TypeToken<Map<String, List<Item>>> ttoken = new TypeToken<Map<String, List<Item>>>() {
+                        };
                         Object fetchedObject = fileService.fetchJson(ttoken);
                         Map<String, List<Item>> locationItems = (Map<String, List<Item>>) fetchedObject;
                         DatabaseService databaseService = new DatabaseService(requireContext());
 
                         switch (which) {
                             case (0):
-                                databaseService.InsertIntoDatabase(locationItems);
+                                databaseService.InsertHashMap(locationItems);
                                 break;
                             case (1):
                                 databaseService.UpdateDatabase(locationItems);
@@ -147,14 +148,15 @@ public class HomeDisplayUi<E> extends Fragment {
                             default:
                                 break;
                         }
+
                     } catch (IOException ioExc) {
                         Toast.makeText(requireContext(), "Error in Filestream", Toast.LENGTH_LONG).show();
-                    }  catch (ClassCastException e) {
-                        Toast.makeText(requireContext(), "Not Valid File Format", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        Toast.makeText(requireContext(), "Error in loading Json: " + e, Toast.LENGTH_LONG).show();
+                    } finally {
+                        makeRefresh();
                     }
                 }).show();
+
+
     }
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -197,7 +199,13 @@ public class HomeDisplayUi<E> extends Fragment {
                     try {
                         OutputStream outputStream = getContext().getContentResolver().openOutputStream(uri);
                         FileService fileService = new FileService(outputStream);
-                        fileService.dump(_dbService.getAllLocationsAndItems(), outputStream);
+                        List<Location> allLocation = _dbService.getAllLocations();
+                        Map<String, List<Item>> locationItems = new HashMap<>();
+                        for (Location location: allLocation) {
+                            List<Item> itemList = _dbService.getAllItemsFromLocation(location.Id);
+                            locationItems.put(location.Name, itemList);
+                        }
+                        fileService.dump(locationItems, outputStream);
 
                     } catch (IOException ioException) {
                         Toast.makeText(requireContext(), "Cant Create File on desired Location", Toast.LENGTH_SHORT).show();
@@ -238,10 +246,7 @@ public class HomeDisplayUi<E> extends Fragment {
 
         // refreshView on Click
         refreshButton.setOnClickListener(click -> {
-            vm.setActionLocation(null);
-            vm.setGlobalItems(new ArrayList<>());
-            locations = _dbService.getAllLocations();
-            renderBody();
+            makeRefresh();
         });
 
         // switch between location / item search
@@ -504,6 +509,13 @@ public class HomeDisplayUi<E> extends Fragment {
 
 
         }
+    }
+
+    private void makeRefresh() {
+        vm.setActionLocation(null);
+        vm.setGlobalItems(new ArrayList<>());
+        locations = _dbService.getAllLocations();
+        renderBody();
     }
 
     private void removeAdChildrenNow() {

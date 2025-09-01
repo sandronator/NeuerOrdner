@@ -136,7 +136,7 @@ public class ItemAddUi extends Fragment {
                 int quantityInt = Integer.parseInt(quantityText);
                 OffsetDateTime now = OffsetDateTime.now();
                 Item item = new Item(itemId, locationId, nameString, quantityInt, now);
-                if (itemId != null) {
+                if (!itemId.isEmpty())  {
                     _dbService.uddateItem(item);
                     Toast.makeText(requireContext(), "Successfull Updated Item", Toast.LENGTH_SHORT).show();
                 } else {
