@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.neuerordner"
+    namespace = "com.neuerordner.main"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.neuerordner"
+        applicationId = "com.neuerordner.main"
         minSdk = 29
         targetSdk = 35
         versionCode = 1

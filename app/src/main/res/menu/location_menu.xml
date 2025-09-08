@@ -12,7 +12,7 @@
 
     <item
         android:id="@+id/update_location"
-        android:title="Update"
+        android:title="Rename"
     />
 
     <item

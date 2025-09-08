@@ -1,97 +1,137 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/itemAddLinearLayout"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/itemAddScrollView"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
->
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="20dp"
-        android:id="@+id/namelabel"
-        android:paddingLeft="12dp"
-        android:text="Name:"
-        />
-
-    <EditText
-        android:id="@+id/itemname"
+    android:fillViewport="true"
+    >
+    <LinearLayout
+        android:id="@+id/itemAddLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:maxHeight="500dp"
-        android:paddingLeft="12dp"
+        android:orientation="vertical"
+        android:paddingEnd="20dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="75dp">
 
 
-        />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="20dp"
-        android:id="@+id/quantitylabel"
-        android:layout_marginTop="30dp"
-        android:paddingLeft="12dp"
+            <TextView
+                android:id="@+id/namelabel"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:paddingLeft="12dp"
+                android:text="Name:" />
 
-        android:text="Quantity:"
-        />
-    <EditText
-        android:id="@+id/itemquantity"
-        android:layout_width="match_parent"
-        android:layout_height="75dp"
-        android:paddingLeft="12dp"
-
-        android:inputType="number" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="20dp"
-        android:id="@+id/locationlabel"
-        android:layout_marginTop="30dp"
-        android:paddingLeft="12dp"
-
-        android:text="Location:"
-        />
-
-    <Spinner
-        android:id="@+id/locationlist"
-        android:layout_width="match_parent"
-        android:layout_height="75dp"
-        android:paddingLeft="12dp"
-
-        />
+            <EditText
+                android:id="@+id/itemname"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:maxHeight="500dp"
+                android:paddingLeft="12dp"
 
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="wrap_content"
+                />
+
+            <TextView
+                android:id="@+id/quantitylabel"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:layout_marginTop="30dp"
+                android:paddingLeft="12dp"
+
+                android:text="Quantity:" />
+
+            <EditText
+                android:id="@+id/itemquantity"
+                android:layout_width="match_parent"
+                android:layout_height="75dp"
+                android:inputType="number"
+                android:paddingLeft="12dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-
+            android:layout_marginTop="30dp"
+            android:gravity="left"
+            android:orientation="horizontal"
+            android:id="@+id/toogleCalendarClickTarget"
             >
-        <Button
-            android:id="@+id/recognizeItemText"
-            android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/bestTillDateLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="20dp"
+                android:paddingRight="6dp"
+                android:paddingLeft="12dp"
+                android:text="Best Till Date:"
+                />
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:id="@+id/bestTillDateDropDown"
+                android:src="@drawable/baseline_arrow_downward_24"
+                android:layout_gravity="bottom"
+            ></ImageView>
+
+        </LinearLayout>
+
+        <CalendarView
+            android:id="@+id/itemBestTillDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="12dp"
+        />
+
+
+        <TextView
+            android:id="@+id/locationlabel"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_marginTop="30dp"
+            android:paddingLeft="12dp"
+
+            android:text="Location:" />
+
+        <Spinner
+            android:id="@+id/locationlist"
+            android:layout_width="match_parent"
             android:layout_height="75dp"
             android:paddingLeft="12dp"
-            android:text="Scan Text"
-            android:layout_marginRight="12dp"
-            android:layout_gravity="center"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/additembutton" />
 
-        <Button
-            android:id="@+id/additembutton"
-            android:layout_width="wrap_content"
-            android:layout_height="75dp"
-            android:text="Save"
-            app:layout_constraintBaseline_toBaselineOf="@id/recognizeItemText"
-            app:layout_constraintStart_toEndOf="@id/recognizeItemText"
-            app:layout_constraintEnd_toEndOf="parent" />
-        />
+            />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            >
 
+            <Button
+                android:id="@+id/recognizeItemText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scan Text"
+                android:layout_marginStart="12dp"/>
 
-</LinearLayout>
+            <Button
+                android:id="@+id/searchBestTillDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scan Date"
+                android:layout_marginStart="8dp"/>
+
+            <Button
+                android:id="@+id/additembutton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save"
+                android:layout_marginStart="8dp"
+                />
+
+            </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>
