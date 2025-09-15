@@ -309,7 +309,7 @@ public class QrCodeGenerator extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        vm.setActionLocation(null);
+        vm.setActiveLocation(null);
     }
 
 

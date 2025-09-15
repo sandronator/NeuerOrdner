@@ -182,7 +182,7 @@ public class QrCodeScan extends Fragment {
                                                 activeLocation.Name = locationName;
                                                 activeLocation.Id = locationId;
 
-                                                vm.setActionLocation(activeLocation);
+                                                vm.setActiveLocation(activeLocation);
                                                 scannedLocations.clear();
 
                                                 Toast.makeText(requireContext(), "Found: "+activeLocation.Name, Toast.LENGTH_SHORT).show();

@@ -35,6 +35,14 @@
         android:label="Text Recognition"
         tools:layout="@layout/fragment_camera_scan"
         />
+    <fragment
+        android:id="@+id/bestTillDateFragment"
+        android:name="com.neuerordner.main.ui.BestTillScanner"
+        android:label="Best Till Date Scanner"
+        tools:layout="@layout/fragment_camera_scan"
+        >
+
+    </fragment>
 
     <fragment
         android:id="@+id/qrCodeDisplayContainerFragment"

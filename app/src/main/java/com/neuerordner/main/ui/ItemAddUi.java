@@ -31,16 +31,14 @@ import com.neuerordner.main.data.Item;
 import com.neuerordner.main.data.Location;
 import com.neuerordner.main.R;
 import com.github.ayvazj.hashadapter.LinkedHashMapAdapter;
+import com.neuerordner.main.utility.NavigationUtility;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -52,7 +50,10 @@ public class ItemAddUi extends Fragment {
     private EditText editTextQuantity;
     private String recognizedText;
     private DatabaseService _dbService;
-    private Date selectedDate = null;
+    private NavigationUtility _navutil;
+    private LocalDate selectedDate;
+    private CalendarView calendar;
+    private Spinner spinner;
 
 
     public ItemAddUi() {}
@@ -70,9 +71,8 @@ public class ItemAddUi extends Fragment {
         LinearLayout itemContainer = scrollView.findViewById(R.id.itemAddLinearLayout);
         editTextName = itemContainer.findViewById(R.id.itemname);
         editTextQuantity = itemContainer.findViewById(R.id.itemquantity);
-        Spinner spinner = itemContainer.findViewById(R.id.locationlist);
-        Button recognizeText = itemContainer.findViewById(R.id.recognizeItemText);
-        CalendarView calendar = itemContainer.findViewById(R.id.itemBestTillDate);
+        spinner = itemContainer.findViewById(R.id.locationlist);
+        calendar = itemContainer.findViewById(R.id.itemBestTillDate);
 
         calendar.setVisibility(View.GONE);
 
@@ -92,22 +92,21 @@ public class ItemAddUi extends Fragment {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
+        // Data from Change Item
         if (getArguments() != null) {
             String itemName = getArguments().getString("name");
             itemId = getArguments().getString("id");
             locationId = getArguments().getString("locationId");
             Integer quantity = getArguments().getInt("quantity");
+            LocalDate localDate = DateConverter.parseLocalDate(getArguments().getString("date"));
 
             editTextName.setText(itemName);
             editTextQuantity.setText(Integer.toString(quantity));
 
-            int counter = 0;
-
-            for (Map.Entry<String, String> entry: adapter) {
-                if (entry.getKey().equals(locationId))  {
-                    spinner.setSelection(counter);
-                }
-                counter++;
+            try {
+                spinner.setSelection(findPositionInLinkedHashAdapter(locationId, adapter));
+            } catch (IndexOutOfBoundsException ex) {
+                Log.e("ItemAddUi", "Error in setting dropdown Selection", ex);
             }
         }
 
@@ -139,12 +138,6 @@ public class ItemAddUi extends Fragment {
 
         //ShowCalendar Button
 
-        recognizeText.setOnClickListener(l -> {
-            vm.setTextMlScanned(null);
-            NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main);
-            navController.navigate(R.id.camerTextScannerFragment);
-        });
-
         return root;
     }
 
@@ -159,6 +152,11 @@ public class ItemAddUi extends Fragment {
         ImageView calendarDropDownButton = container.findViewById(R.id.bestTillDateDropDown);
         Drawable arrowUp = ContextCompat.getDrawable(requireContext(), R.drawable.baseline_arrow_upward_24);
         Drawable arrowDown = ContextCompat.getDrawable(requireContext(), R.drawable.baseline_arrow_downward_24);
+        LinearLayout itemContainer = scrollView.findViewById(R.id.itemAddLinearLayout);
+        Button recognizeText = itemContainer.findViewById(R.id.recognizeItemText);
+        Button scanDateButton = itemContainer.findViewById(R.id.searchBestTillDate);
+        _navutil = new NavigationUtility(root);
+
 
         bestTillDateDropDown.setOnClickListener(l -> {
             if (calendar.getVisibility() == View.GONE) {
@@ -171,8 +169,7 @@ public class ItemAddUi extends Fragment {
         });
 
         calendar.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
-            LocalDate ld = LocalDate.of(year, month + 1, dayOfMonth); // add 1
-            selectedDate = Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            selectedDate = LocalDate.of(year, month + 1, dayOfMonth); // add 1
         });
 
         // Speichern-Button
@@ -211,7 +208,29 @@ public class ItemAddUi extends Fragment {
             }
         });
 
+        recognizeText.setOnClickListener(l -> {
+            vm.setTextMlScanned(null);
+            _navutil.navigateWithoutBundle(R.id.camerTextScannerFragment);
+        });
 
+        scanDateButton.setOnClickListener(l -> {
+            vm.setDate(null);
+            _navutil.navigateWithoutBundle(R.id.bestTillDateFragment);
+        });
+
+
+    }
+
+    private int findPositionInLinkedHashAdapter(String locationId, LinkedHashMapAdapter<String, String> adapter) throws IndexOutOfBoundsException {
+        int counter = 0;
+
+        for (Map.Entry<String, String> entry: adapter) {
+            if (entry.getKey().equals(locationId))  {
+                return counter;
+            }
+            counter++;
+        }
+        throw new IndexOutOfBoundsException("Id not in adapter");
     }
 
     @Override
@@ -224,6 +243,10 @@ public class ItemAddUi extends Fragment {
         recognizedText = vm.getTextMlScanned().getValue();
         if (recognizedText != null && !recognizedText.isEmpty() && editTextName != null) {
             editTextName.setText(recognizedText);
+        }
+        selectedDate = vm.getDate().getValue();
+        if (calendar != null && selectedDate != null) {
+            calendar.setDate(selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
         }
         vm.setTextMlScanned(null);
     }

@@ -7,6 +7,7 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
@@ -33,9 +34,9 @@ public class Item implements NameAccess, Serializable {
     public String Name;
     public int Quantity;
     public OffsetDateTime Time;
-    public Date bestTillDate;
+    public LocalDate bestTillDate;
 
-    public Item(String Id, String LocationId, String Name, int Quantity, OffsetDateTime Time, Date bestTillDate) {
+    public Item(String Id, String LocationId, String Name, int Quantity, OffsetDateTime Time, LocalDate bestTillDate) {
         this.Id = Id;
         this.LocationId = LocationId;
         this.Name = Name;

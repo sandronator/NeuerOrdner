@@ -317,7 +317,7 @@ public class HomeDisplayUi<E> extends Fragment {
             }
 
 
-            vm.setActionLocation(null);
+            vm.setActiveLocation(null);
             vm.setGlobalItems(null);
             renderBody();
         });
@@ -510,7 +510,7 @@ public class HomeDisplayUi<E> extends Fragment {
     }
 
     private void makeRefresh() {
-        vm.setActionLocation(null);
+        vm.setActiveLocation(null);
         vm.setGlobalItems(new ArrayList<>());
         locations = _dbService.getAllLocations();
         itemList = new ArrayList<>();

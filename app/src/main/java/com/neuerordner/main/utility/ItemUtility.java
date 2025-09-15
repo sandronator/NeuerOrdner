@@ -21,6 +21,8 @@ import com.neuerordner.main.data.Item;
 import com.neuerordner.main.R;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Locale;
 import java.util.function.Supplier;
 
@@ -35,6 +37,11 @@ public class ItemUtility {
     public ItemUtility(DatabaseService dbService, Context context, View root) {
         _dbService = dbService;
         _context = context;
+        _navUtil = new NavigationUtility(root);
+    }
+    public ItemUtility(View root) {
+        _context = root.getContext();
+        _dbService = new DatabaseService(_context);
         _navUtil = new NavigationUtility(root);
     }
 
@@ -65,12 +72,14 @@ public class ItemUtility {
 
         Button editBtn = new Button(_context);
         editBtn.setText("Change");
+        final String bestTillDateFinal = bestTillDate != null ? bestTillDate.toString() : LocalDate.now(ZoneId.systemDefault()).toString();
         editBtn.setOnClickListener(v -> {
             Bundle b = new Bundle();
             b.putString("name", item.Name);
             b.putString("id", item.Id);
             b.putString("locationId", item.LocationId);
             b.putInt("quantity", item.Quantity);
+            b.putString("date", bestTillDateFinal);
             _navUtil.navigateWithBundle(R.id.action_global_itemContainerFragment, b);
         });
 

@@ -111,7 +111,7 @@ public class AddLocationUi extends Fragment {
         activeLocation.Id = location.Id;
         activeLocation.Name = location.Name;
 
-        vm.setActionLocation(activeLocation);
+        vm.setActiveLocation(activeLocation);
         vm.setTextMlScanned(null);
 
         _navUtil.navigateWithoutBundle(R.id.qrCodeDisplayContainerFragment);

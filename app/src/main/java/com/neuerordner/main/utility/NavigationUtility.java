@@ -13,7 +13,7 @@ public class NavigationUtility {
 
     public NavigationUtility(View root) {
         _root = root;
-        _nav = Navigation.findNavController(_root);
+        _nav = Navigation.findNavController(root);
     }
 
     public NavigationUtility(NavController nav) {
