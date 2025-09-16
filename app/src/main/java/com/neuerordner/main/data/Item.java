@@ -25,12 +25,13 @@ import java.util.Date;
 
 
 )
-public class Item implements NameAccess, Serializable {
+public class Item implements NameAccess, Serializable, Comparable<Item> {
     @PrimaryKey
     @NonNull
 
     public String Id;
     public String LocationId;
+    @NonNull
     public String Name;
     public int Quantity;
     public OffsetDateTime Time;
@@ -96,4 +97,8 @@ public class Item implements NameAccess, Serializable {
         return Id != null ? Id.hashCode() : 0;
     }
 
+    @Override
+    public int compareTo(Item o) {
+        return this.Name.compareToIgnoreCase(o.Name);
+    }
 }

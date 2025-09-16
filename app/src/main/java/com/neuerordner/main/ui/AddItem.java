@@ -36,13 +36,15 @@ import com.neuerordner.main.utility.NavigationUtility;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.Date;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-public class ItemAddUi extends Fragment {
+public class AddItem extends Fragment {
     private String locationId = "";
     private String itemId = "";
     private GlobalViewModel vm;
@@ -54,9 +56,10 @@ public class ItemAddUi extends Fragment {
     private LocalDate selectedDate;
     private CalendarView calendar;
     private Spinner spinner;
+    private LinkedHashMapAdapter<String, String> adapter;
 
 
-    public ItemAddUi() {}
+    public AddItem() {}
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) {
@@ -84,36 +87,16 @@ public class ItemAddUi extends Fragment {
         }
 
         // Adapter setzen
-        LinkedHashMapAdapter<String, String> adapter = new LinkedHashMapAdapter<>(
+        adapter = new LinkedHashMapAdapter<>(
                 requireContext(),
                 android.R.layout.simple_spinner_item, // Neutraler Spinner-Layout
                 locationMap
         );
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        // Data from Change Item
-        if (getArguments() != null) {
-            String itemName = getArguments().getString("name");
-            itemId = getArguments().getString("id");
-            locationId = getArguments().getString("locationId");
-            Integer quantity = getArguments().getInt("quantity");
-            LocalDate localDate = DateConverter.parseLocalDate(getArguments().getString("date"));
-
-            editTextName.setText(itemName);
-            editTextQuantity.setText(Integer.toString(quantity));
-
-            try {
-                spinner.setSelection(findPositionInLinkedHashAdapter(locationId, adapter));
-            } catch (IndexOutOfBoundsException ex) {
-                Log.e("ItemAddUi", "Error in setting dropdown Selection", ex);
-            }
-        }
-
-        if (recognizedText != null && !recognizedText.isEmpty()) {
-            editTextName.setText(recognizedText);
-        }
-
+        setLatestClicked();
 
         // Spinner-Auswahl behandeln
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -123,6 +106,7 @@ public class ItemAddUi extends Fragment {
                     Map.Entry<String, String> selectedEntry = (Map.Entry<String, String>) spinner.getSelectedItem();
                     if (selectedEntry != null) {
                         locationId = selectedEntry.getKey();
+                        vm.setLastClickedLocation(_dbService.getLocation(locationId));
                     }
                 } catch (Exception exception) {
                     Log.e("Error Selecting Location on Item Creationg with :", exception.toString());
@@ -135,6 +119,35 @@ public class ItemAddUi extends Fragment {
                 locationId = ""; // Fallback
             }
         });
+
+
+        // fetch arguments form "Change" Button
+        if (getArguments() != null) {
+            String itemName = getArguments().getString("name");
+            itemId = getArguments().getString("id");
+            locationId = getArguments().getString("locationId");
+            Integer quantity = getArguments().getInt("quantity");
+            LocalDate localDate = DateConverter.parseLocalDate(getArguments().getString("date"));
+
+            editTextName.setText(itemName);
+            editTextQuantity.setText(Integer.toString(quantity));
+
+            try {
+                spinner.setSelection(findPositionInLinkedHashAdapter(locationId));
+            } catch (IndexOutOfBoundsException ex) {
+                Log.e("AddItem", "Error in setting dropdown Selection", ex);
+            }
+        }
+
+
+
+
+        //Set recognized text
+        if (recognizedText != null && !recognizedText.isEmpty()) {
+            editTextName.setText(recognizedText);
+        }
+
+
 
         //ShowCalendar Button
 
@@ -157,7 +170,7 @@ public class ItemAddUi extends Fragment {
         Button scanDateButton = itemContainer.findViewById(R.id.searchBestTillDate);
         _navutil = new NavigationUtility(root);
 
-
+        //besttillDateDropdown logic
         bestTillDateDropDown.setOnClickListener(l -> {
             if (calendar.getVisibility() == View.GONE) {
                 calendarDropDownButton.setImageDrawable(arrowUp);
@@ -168,9 +181,11 @@ public class ItemAddUi extends Fragment {
             }
         });
 
+        //calendar set clicked date
         calendar.setOnDateChangeListener((view, year, month, dayOfMonth) -> {
             selectedDate = LocalDate.of(year, month + 1, dayOfMonth); // add 1
         });
+
 
         // Speichern-Button
         saveButton.setOnClickListener(v -> {
@@ -194,12 +209,12 @@ public class ItemAddUi extends Fragment {
                 Item item = new Item(itemId, locationId, nameString, quantityInt, now, selectedDate);
                 if (!itemId.isEmpty())  {
                     _dbService.uddateItem(item);
-                    Toast.makeText(requireContext(), "Successfull Updated Item", Toast.LENGTH_SHORT).show();
                 } else {
                     item.Id = UUID.randomUUID().toString();
                     _dbService.addItem(item);
-                    Toast.makeText(requireContext(), "Successfull Created Item", Toast.LENGTH_SHORT).show();
                 }
+                Toast.makeText(requireContext(), "Successfull Created Item", Toast.LENGTH_SHORT).show();
+
                 NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main);
                 navController.navigate(R.id.locationListContainerFragment);
 
@@ -221,9 +236,9 @@ public class ItemAddUi extends Fragment {
 
     }
 
-    private int findPositionInLinkedHashAdapter(String locationId, LinkedHashMapAdapter<String, String> adapter) throws IndexOutOfBoundsException {
+    private int findPositionInLinkedHashAdapter(String locationId) throws IndexOutOfBoundsException {
+        if (adapter == null) throw new IndexOutOfBoundsException("Adapter null");
         int counter = 0;
-
         for (Map.Entry<String, String> entry: adapter) {
             if (entry.getKey().equals(locationId))  {
                 return counter;
@@ -231,6 +246,20 @@ public class ItemAddUi extends Fragment {
             counter++;
         }
         throw new IndexOutOfBoundsException("Id not in adapter");
+    }
+
+    public void setLatestClicked() {
+        if (vm == null || spinner == null || adapter == null) return;
+
+        Location lastClickedLocation = vm.getLastClickedLocation().getValue();
+        if (lastClickedLocation != null) {
+            try {
+                locationId = lastClickedLocation.Id;
+                spinner.setSelection(findPositionInLinkedHashAdapter(locationId));
+            } catch (IndexOutOfBoundsException e) {
+                Log.e("AddItem", "Error in setting dropdown Selection", e);
+            }
+        }
     }
 
     @Override
@@ -248,12 +277,14 @@ public class ItemAddUi extends Fragment {
         if (calendar != null && selectedDate != null) {
             calendar.setDate(selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
         }
+        setLatestClicked();
+
         vm.setTextMlScanned(null);
     }
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        vm.setUpdateLocation(null);
     }
+
 
 }

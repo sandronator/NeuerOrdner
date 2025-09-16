@@ -1,4 +1,4 @@
-package com.neuerordner.main.ui;
+package com.neuerordner.main.ui.scanner;
 
 import static android.view.View.VISIBLE;
 
@@ -51,7 +51,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class BestTillScanner extends Fragment {
+public class BestTillDate extends Fragment {
 
     private static final String CAMERAPERMISSION = Manifest.permission.CAMERA;
 
@@ -79,7 +79,7 @@ public class BestTillScanner extends Fragment {
     private final AtomicBoolean showingDialog = new AtomicBoolean(false);
     private Set<LocalDate> dates = new LinkedHashSet<>();
 
-    public BestTillScanner() {}
+    public BestTillDate() {}
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saveInstanceState) {

@@ -5,6 +5,8 @@ import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +26,9 @@ public class DatabaseService<T> {
     }
 
     public List<Location> getAllLocations() {
-        return _db.locationDAO().getAll();
+        List<Location> locations = _db.locationDAO().getAll();
+        Collections.sort(locations);
+        return locations;
     }
     public Map<Location, List<Item>> getAllLocationsAndItems() {
         List<Location> allLocations = this.getAllLocations();
@@ -81,7 +85,9 @@ public class DatabaseService<T> {
     }
 
     public List<Item> getAllItems() {
-        return _db.itemDao().getSyncedAll();
+        List<Item> items = _db.itemDao().getAll().getValue();
+        Collections.sort(items);
+        return items;
     }
 
     public List<Item> getAllItemsFromLocation(String locationId) {

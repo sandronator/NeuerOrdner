@@ -22,7 +22,7 @@ import com.google.android.gms.ads.nativead.NativeAd;
 import com.google.android.gms.ads.nativead.NativeAdView;
 import com.neuerordner.main.BuildConfig;
 
-public class Ad extends Fragment {
+public class Commercial extends Fragment {
     // ← This must be a *Native* ad unit ID, not the “~” App ID.
     private static final String NATIVE_AD_UNIT_ID =
             "ca-app-pub-3940256099942544/2247696110"; // Google’s TEST Native-Advanced ID
@@ -58,7 +58,7 @@ public class Ad extends Fragment {
                 })
                 .withAdListener(new AdListener() {
                     @Override public void onAdFailedToLoad(@NonNull LoadAdError error) {
-                        Log.e("AdFragment", "Ad failed: " + error.getMessage());
+                        Log.e("AdFragment", "Commercial failed: " + error.getMessage());
                     }
                 })
                 .build();

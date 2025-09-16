@@ -1,4 +1,4 @@
-package com.neuerordner.main.ui;
+package com.neuerordner.main.ui.scanner;
 
 import static android.view.View.VISIBLE;
 
@@ -34,19 +34,16 @@ import com.neuerordner.main.data.GlobalViewModel;
 import com.neuerordner.main.data.PermissionException;
 import com.neuerordner.main.R;
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.TextRecognizer;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class TextRecognitionUi extends Fragment {
+public class TextRecognition extends Fragment {
 
     private TextRecognizer recognizer =
-            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
+            com.google.mlkit.vision.text.TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
     private PreviewView previewView;
     private LifecycleCameraController lifeCycleCameraController;
     private boolean torchEnable = false;
@@ -62,7 +59,7 @@ public class TextRecognitionUi extends Fragment {
 
 
 
-    public TextRecognitionUi() {}
+    public TextRecognition() {}
 
      @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saveInstanceState) {

@@ -24,7 +24,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
 
-public class AddLocationUi extends Fragment {
+public class AddLocation extends Fragment {
     private GlobalViewModel vm;
     private View root;
     private NavigationUtility _navUtil;

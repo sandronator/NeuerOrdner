@@ -42,11 +42,13 @@ public class DateConverter {
 
     @TypeConverter
     public static String convertDate (Date value) {
+        if (value == null) return null;
         return DATE_FORMATTER.format(value);
     }
 
     @TypeConverter
     public static String convertDateTime (LocalDate value) {
+        if (value == null) return null;
         return DATE_TIME_FORMATTER.format(value);
     }
 

@@ -10,7 +10,7 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 
-@Database(entities = {Location.class, Item.class, ActiveLocation.class}, version = 3, exportSchema = false)
+@Database(entities = {Location.class, Item.class, ActiveLocation.class}, version = 4, exportSchema = false)
 @TypeConverters({DateTimeConverter.class, DateConverter.class})
 public abstract class   AppDatabase extends RoomDatabase {
     public abstract LocationDAO locationDAO();
@@ -48,4 +48,38 @@ public abstract class   AppDatabase extends RoomDatabase {
                 db.execSQL("ALTER TABLE Item ADD COLUMN bestTillDate TEXT");
         }
     };
+    public static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            // Neue Tabelle mit Name NOT NULL
+            db.execSQL(
+                    "CREATE TABLE Item_new (" +
+                            " Id TEXT NOT NULL PRIMARY KEY," +
+                            " LocationId TEXT," +
+                            " Name TEXT NOT NULL," +       // jetzt NOT NULL
+                            " Quantity INTEGER NOT NULL," +
+                            " Time TEXT," +
+                            " bestTillDate TEXT," +
+                            " FOREIGN KEY(LocationId) REFERENCES Location(Id) ON DELETE CASCADE" +
+                            ")"
+            );
+
+            // Daten rüberkopieren, NULL-Namen durch '' oder einen Default ersetzen
+            db.execSQL(
+                    "INSERT INTO Item_new (Id, LocationId, Name, Quantity, Time, bestTillDate) " +
+                            "SELECT Id, LocationId, COALESCE(Name, ''), Quantity, Time, bestTillDate FROM Item"
+            );
+
+            // Alte Tabelle löschen
+            db.execSQL("DROP TABLE Item");
+
+            // Neue umbenennen
+            db.execSQL("ALTER TABLE Item_new RENAME TO Item");
+
+            // Index wiederherstellen
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_Item_LocationId ON Item(LocationId)");
+        }
+    };
+
+
 }

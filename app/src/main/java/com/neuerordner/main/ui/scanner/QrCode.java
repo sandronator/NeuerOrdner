@@ -1,4 +1,4 @@
-package com.neuerordner.main.ui;
+package com.neuerordner.main.ui.scanner;
 
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
@@ -50,7 +50,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-public class QrCodeScan extends Fragment {
+public class QrCode extends Fragment {
     private PreviewView previewView;
     private ConstraintLayout layout;
     private AppDatabase db = null;
@@ -69,7 +69,7 @@ public class QrCodeScan extends Fragment {
 
 
 
-    public QrCodeScan() {}
+    public QrCode() {}
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saveInstanceState) {

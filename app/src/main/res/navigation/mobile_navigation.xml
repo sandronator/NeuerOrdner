@@ -7,37 +7,37 @@
 
     <fragment
         android:id="@+id/locationListContainerFragment"
-        android:name="com.neuerordner.main.ui.HomeDisplayUi"
+        android:name="com.neuerordner.main.ui.Home"
         android:label="LocationList"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/itemContainerFragment"
-        android:name="com.neuerordner.main.ui.ItemAddUi"
+        android:name="com.neuerordner.main.ui.AddItem"
         android:label="Add Item"
         tools:layout="@layout/fragment_add_item" />
 
     <fragment
         android:id="@+id/locationContainerFragment"
-        android:name="com.neuerordner.main.ui.AddLocationUi"
+        android:name="com.neuerordner.main.ui.AddLocation"
         android:label="Add Location"
         tools:layout="@layout/fragment_add_location"
         />
     <fragment
         android:id="@+id/cameraScanFragment"
-        android:name="com.neuerordner.main.ui.QrCodeScan"
+        android:name="com.neuerordner.main.ui.scanner.QrCode"
         android:label="Qr-code Scan"
         tools:layout="@layout/fragment_camera_scan"
     />
     <fragment
         android:id="@+id/camerTextScannerFragment"
-        android:name="com.neuerordner.main.ui.TextRecognitionUi"
+        android:name="com.neuerordner.main.ui.scanner.TextRecognition"
         android:label="Text Recognition"
         tools:layout="@layout/fragment_camera_scan"
         />
     <fragment
         android:id="@+id/bestTillDateFragment"
-        android:name="com.neuerordner.main.ui.BestTillScanner"
+        android:name="com.neuerordner.main.ui.scanner.BestTillDate"
         android:label="Best Till Date Scanner"
         tools:layout="@layout/fragment_camera_scan"
         >

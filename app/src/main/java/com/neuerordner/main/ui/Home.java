@@ -55,7 +55,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class HomeDisplayUi<E> extends Fragment {
+public class Home<E> extends Fragment {
     private GlobalViewModel vm;
     private boolean isSetLocation = true;
     private List<Location> locations = Collections.emptyList();
@@ -97,7 +97,7 @@ public class HomeDisplayUi<E> extends Fragment {
     private LinearLayout bodyLayout;
     private LinearLayout containerLayout;
     boolean activeLoc = false;
-    public HomeDisplayUi() { /* required empty ctor */ }
+    public Home() { /* required empty ctor */ }
 
     private void startChooseDirectoryIntent() {
         Intent folderDumpingIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -498,7 +498,7 @@ public class HomeDisplayUi<E> extends Fragment {
 
                 getChildFragmentManager()
                         .beginTransaction()
-                        .replace(containerId, new Ad(), "ad_" + i)
+                        .replace(containerId, new Commercial(), "ad_" + i)
                         .commit();
             }
 
@@ -512,6 +512,7 @@ public class HomeDisplayUi<E> extends Fragment {
     private void makeRefresh() {
         vm.setActiveLocation(null);
         vm.setGlobalItems(new ArrayList<>());
+        vm.setLastClickedLocation(null);
         locations = _dbService.getAllLocations();
         itemList = new ArrayList<>();
         renderBody();
@@ -521,7 +522,7 @@ public class HomeDisplayUi<E> extends Fragment {
         var fm = getChildFragmentManager();
         var tx = fm.beginTransaction();
         for (var f : fm.getFragments()) {
-            if (f instanceof Ad )  {
+            if (f instanceof Commercial)  {
                 tx.remove(f);
             }
         }
