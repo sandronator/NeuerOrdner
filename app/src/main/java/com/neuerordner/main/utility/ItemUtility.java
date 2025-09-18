@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.renderscript.ScriptGroup;
 import android.text.InputType;
 import android.text.method.TransformationMethod;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -19,10 +20,12 @@ import androidx.core.content.ContextCompat;
 import com.neuerordner.main.data.DatabaseService;
 import com.neuerordner.main.data.Item;
 import com.neuerordner.main.R;
+import com.neuerordner.main.ui.Divider;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.TextStyle;
 import java.util.Locale;
 import java.util.function.Supplier;
 
@@ -33,7 +36,6 @@ public class ItemUtility {
     private static final Integer NORMAL_TEXT_SIZE = 15;
     private static final Integer LABEL_TEXT_SIZE = 20;
     private static final Integer[] PADDING_TEXT_VIEW = {10, 15, 0, 0};
-
     public ItemUtility(DatabaseService dbService, Context context, View root) {
         _dbService = dbService;
         _context = context;
@@ -51,28 +53,37 @@ public class ItemUtility {
         if (itemHolder.getChildCount() > 0) {
             return;
         }
-
+        // Item Name with Label
         TextView lblName = textViewCreate("Name: ", LABEL_TEXT_SIZE, Typeface.BOLD, PADDING_TEXT_VIEW);
         TextView name    = textViewCreate(item.Name, NORMAL_TEXT_SIZE, Typeface.NORMAL, PADDING_TEXT_VIEW);
 
+        // Item Quantity with Label
         TextView lblQty  = textViewCreate("Quanitiy: ", LABEL_TEXT_SIZE, Typeface.BOLD, PADDING_TEXT_VIEW);
         TextView qty     = textViewCreate(String.valueOf(item.Quantity), NORMAL_TEXT_SIZE, Typeface.NORMAL, PADDING_TEXT_VIEW);
 
+        // Item Best Till Date with Label
+        TextView textViewBestTillDate = null;
         TextView lbBestTillDate = null;
-        TextView bestTillDate = null;
+
         if (item.bestTillDate != null) {
             lbBestTillDate = textViewCreate("Best Before: ", LABEL_TEXT_SIZE, Typeface.BOLD, PADDING_TEXT_VIEW);
-            String year = new SimpleDateFormat("yyyy", Locale.ENGLISH).format(item.bestTillDate);
-            String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(item.bestTillDate);
-            String day = new SimpleDateFormat("dd", Locale.ENGLISH).format(item.bestTillDate);
-            String dayOfWeek = new SimpleDateFormat("EEEE", Locale.ENGLISH).format(item.bestTillDate);
-            String ydm = dayOfWeek + " " + day + " of " + month + " " + year;
-            bestTillDate = textViewCreate(ydm, NORMAL_TEXT_SIZE, Typeface.NORMAL, PADDING_TEXT_VIEW, InputType.TYPE_DATETIME_VARIATION_DATE);
+            try {
+                String eeee = item.bestTillDate.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.getDefault());
+                String year = String.valueOf(item.bestTillDate.getYear());
+                String month = item.bestTillDate.getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault());
+                String day = String.valueOf(item.bestTillDate.getDayOfMonth());
+                String bestTillDate = eeee + ", " + day + " " + month + " " + year;
+
+                textViewBestTillDate = textViewCreate(bestTillDate, NORMAL_TEXT_SIZE, Typeface.NORMAL, PADDING_TEXT_VIEW, InputType.TYPE_DATETIME_VARIATION_DATE);
+            } catch (IllegalArgumentException illegalArgumentException) {
+                Log.e("ItemUtility", "Error parsing Date", illegalArgumentException);
+            }
         }
 
+        // Edit Button
         Button editBtn = new Button(_context);
         editBtn.setText("Change");
-        final String bestTillDateFinal = bestTillDate != null ? bestTillDate.toString() : LocalDate.now(ZoneId.systemDefault()).toString();
+        final String bestTillDateFinal = textViewBestTillDate != null ? textViewBestTillDate.toString() : LocalDate.now(ZoneId.systemDefault()).toString();
         editBtn.setOnClickListener(v -> {
             Bundle b = new Bundle();
             b.putString("name", item.Name);
@@ -83,25 +94,28 @@ public class ItemUtility {
             _navUtil.navigateWithBundle(R.id.action_global_itemContainerFragment, b);
         });
 
+        // Delete Button
         ImageButton delBtn = new ImageButton(_context);
         Drawable trashBin = ContextCompat.getDrawable(_context, R.drawable.ic_trash_32).mutate();
         delBtn.setImageDrawable(trashBin);
 
-
+        //New Linear Layout
         LinearLayout opts = new LinearLayout(_context);
         opts.setOrientation(LinearLayout.HORIZONTAL);
+
         opts.addView(editBtn);
         opts.addView(delBtn);
-
         itemHolder.addView(lblName);
         itemHolder.addView(name);
         itemHolder.addView(lblQty);
         itemHolder.addView(qty);
-        if (lbBestTillDate != null && bestTillDate != null) {
+
+        if (lbBestTillDate != null && textViewBestTillDate != null) {
             itemHolder.addView(lbBestTillDate);
-            itemHolder.addView(bestTillDate);
+            itemHolder.addView(textViewBestTillDate);
         }
         itemHolder.addView(opts);
+        itemHolder.addView(Divider.divider(_context, 2));
         superHolder.addView(itemHolder);
         delBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(_context).setTitle("Delete")

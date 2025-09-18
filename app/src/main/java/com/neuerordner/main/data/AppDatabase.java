@@ -10,12 +10,11 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 
-@Database(entities = {Location.class, Item.class, ActiveLocation.class}, version = 4, exportSchema = false)
+@Database(entities = {Location.class, Item.class}, version = 6, exportSchema = false)
 @TypeConverters({DateTimeConverter.class, DateConverter.class})
 public abstract class   AppDatabase extends RoomDatabase {
     public abstract LocationDAO locationDAO();
     public abstract ItemDAO itemDao();
-    public abstract  ActiveLocationDAO activeLocationDao();
 
     public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
@@ -80,6 +79,45 @@ public abstract class   AppDatabase extends RoomDatabase {
             db.execSQL("CREATE INDEX IF NOT EXISTS index_Item_LocationId ON Item(LocationId)");
         }
     };
+
+    public static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("Drop Table ActiveLocation");
+        }
+    };
+
+    public static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            // Neue Tabelle mit harter NOT NULL-Constraint für CreationDate
+            db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS Location_new (" +
+                            "  Id TEXT NOT NULL PRIMARY KEY," +
+                            "  Name TEXT NOT NULL," +
+                            "  CreationDate TEXT NOT NULL" +
+                            ")"
+            );
+
+            // Daten kopieren; CreationDate NULL oder '' -> now() in ISO (UTC)
+            db.execSQL(
+                    "INSERT INTO Location_new (Id, Name, CreationDate) " +
+                            "SELECT " +
+                            "  Id, " +
+                            "  COALESCE(Name, ''), " +
+                            "  COALESCE(NULLIF(CreationDate, ''), strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) " +
+                            "FROM Location"
+            );
+
+            // Alte Tabelle ersetzen
+            db.execSQL("DROP TABLE Location");
+            db.execSQL("ALTER TABLE Location_new RENAME TO Location");
+
+            // Unique-Index auf Name wiederherstellen
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_Location_Name ON Location(Name)");
+        }
+    };
+
 
 
 }

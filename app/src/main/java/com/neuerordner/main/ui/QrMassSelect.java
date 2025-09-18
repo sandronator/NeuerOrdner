@@ -84,7 +84,7 @@ public class QrMassSelect extends Fragment {
         });
     }
 
-    private void updateCounterState() {
+    private void updateLocationSelected() {
         if (counter > 0) {
             selectCounterView.setVisibility(View.VISIBLE);
         } else {
@@ -100,8 +100,23 @@ public class QrMassSelect extends Fragment {
             checkBox.setText(loc.Name);
             checkBox.setTag(loc);
             checkBox.setChecked(allClicked);
-            if (allClicked) counter = locationList.size();
-            updateCounterState();
+
+            GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
+            // prohibit auto resizing
+            lp.width = 0;
+            // height is normal wrapped
+            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            // add a equal weights
+            lp.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+
+            checkBox.setLayoutParams(lp);
+            // allow multi line
+            checkBox.setSingleLine(false);
+            // row limit
+            checkBox.setMaxLines(3);
+            // forbid "..." clipping
+            checkBox.setEllipsize(null);
+
             //If clicked we check the current state and add or remove the location based on the state of checkbox
             checkBox.setOnClickListener(l -> {
                 if (checkBox.isChecked()) {
@@ -113,11 +128,15 @@ public class QrMassSelect extends Fragment {
                         counter--;
                     }
                 }
-                updateCounterState();
+                updateLocationSelected();
             });
 
             checkBoxLayout.addView(checkBox);
         }
+
+        if (allClicked) counter = locationList.size();
+        updateLocationSelected();
+
 
 
     }

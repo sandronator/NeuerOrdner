@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.neuerordner.main.data.ActiveLocation;
 import com.neuerordner.main.data.DatabaseService;
 import com.neuerordner.main.data.GlobalViewModel;
 import com.neuerordner.main.data.Location;
@@ -78,6 +77,11 @@ public class AddLocation extends Fragment {
             if (name == null || name.isEmpty()) {
                 return;
             }
+
+            if (name.contains(",")) {
+                name = name.replace(",", "|");
+            }
+
             String parsedId;
             if (finalLocationId == null || finalLocationId.isEmpty()) {
                 parsedId = UUID.randomUUID().toString();
@@ -96,8 +100,13 @@ public class AddLocation extends Fragment {
                 Toast.makeText(requireContext(), "Updated Succesfully", Toast.LENGTH_SHORT).show();
                 _navUtil.navigateWithoutBundle(R.id.locationListContainerFragment);
             } else {
-                _dbService.addLocation(location);
-                setActiveAndNavigateQr(location);
+                try {
+                    _dbService.addLocation(location);
+                } catch (IllegalArgumentException e) {
+                    Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                _navUtil.navigateWithoutBundle(R.id.qrCodeDisplayContainerFragment);
             }
 
         });
@@ -105,18 +114,6 @@ public class AddLocation extends Fragment {
         scanTextButton.setOnClickListener(l -> _navUtil.navigateWithoutBundle(R.id.camerTextScannerFragment));
 
     }
-
-    private void setActiveAndNavigateQr(Location location) {
-        ActiveLocation activeLocation = new ActiveLocation();
-        activeLocation.Id = location.Id;
-        activeLocation.Name = location.Name;
-
-        vm.setActiveLocation(activeLocation);
-        vm.setTextMlScanned(null);
-
-        _navUtil.navigateWithoutBundle(R.id.qrCodeDisplayContainerFragment);
-    }
-
     private String getName() {
         String name = nameElement.getText().toString();
         if (name.isEmpty()) {

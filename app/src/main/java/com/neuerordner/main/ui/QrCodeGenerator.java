@@ -1,8 +1,11 @@
 package com.neuerordner.main.ui;
 
 
+import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -19,6 +22,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -36,6 +41,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -61,6 +67,7 @@ public class QrCodeGenerator extends Fragment {
     private final int MAX_QR_EACH_ROW = CANVAS_WIDTH / QR_SIZE_PLUS_MARGIN;
     private final int MAX_ROWS = CANVAS_HEIGHT / QR_SIZE_PLUS_MARGIN;
     private final int MAX_QR_CODES = MAX_QR_EACH_ROW * MAX_ROWS - 1;
+    private ActivityResultLauncher<Intent> openFolderLauncher;
 
 
     public QrCodeGenerator() {}
@@ -72,7 +79,6 @@ public class QrCodeGenerator extends Fragment {
     @Override
     public void onViewCreated(@NonNull View root, Bundle savedInstanceState) {
         super.onViewCreated(root, savedInstanceState);
-        Log.d("Max QR: ", String.valueOf(MAX_QR_CODES));
         _navUtil = new NavigationUtility(root);
         _dbService = new DatabaseService(requireContext());
         _itemUtility = new ItemUtility(_dbService, requireContext(), root);
@@ -202,10 +208,11 @@ public class QrCodeGenerator extends Fragment {
 
         ContentResolver resolver = requireContext().getContentResolver();
         ContentValues values = new ContentValues();
+        String savePath = Environment.DIRECTORY_DOWNLOADS + "/NeuerOrdner";
 
         values.put(MediaStore.Downloads.DISPLAY_NAME, filename);
         values.put(MediaStore.Downloads.MIME_TYPE, "image/jpeg");
-        values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/NeuerOrdner");
+        values.put(MediaStore.Downloads.RELATIVE_PATH, savePath);
         values.put(MediaStore.Downloads.IS_PENDING, 1);
 
         Uri collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
@@ -293,7 +300,11 @@ public class QrCodeGenerator extends Fragment {
         resolver.update(itemUri, values, null, null);
         Toast.makeText(requireContext(), "QR-Code in Downloads gespeichert", Toast.LENGTH_SHORT).show();
 
+        Intent intent = new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS);
+        startActivity(intent);
+
     }
+
 
     private void askAndSafe() {
         _itemUtility.textViewCreate(String.format("Do you want save %d Locations?", locations.size()), R.dimen.NORMAL_TEXT_SIZE, 0, new Integer[0]);
@@ -309,7 +320,7 @@ public class QrCodeGenerator extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        vm.setActiveLocation(null);
+        vm.setScannedLocationFromQr(null);
     }
 
 

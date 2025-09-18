@@ -12,7 +12,7 @@ import java.util.List;
 @Dao
 public interface ItemDAO {
     @Query("SELECT * FROM item")
-    LiveData<List<Item>> getAll();
+    List<Item> getAll();
 
     @Query("SELECT * FROM item")
     List<Item> getSyncedAll();

@@ -28,13 +28,13 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.room.Room;
 import androidx.viewbinding.ViewBinding;
 
 
-import com.neuerordner.main.data.ActiveLocation;
 import com.neuerordner.main.data.AppDatabase;
+import com.neuerordner.main.data.DatabaseService;
 import com.neuerordner.main.data.GlobalViewModel;
+import com.neuerordner.main.data.Location;
 import com.neuerordner.main.data.PermissionException;
 import com.neuerordner.main.R;
 import com.neuerordner.main.utility.NavigationUtility;
@@ -64,8 +64,10 @@ public class QrCode extends Fragment {
     private ImageAnalysis imageAnalysis;
     private boolean torchEnable = false;
     private NavigationUtility _navUtil;
+    private DatabaseService _dbService;
     private ProgressBar _progressbar;
     private boolean showSpinner;
+    private static boolean success = false;
 
 
 
@@ -74,7 +76,7 @@ public class QrCode extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saveInstanceState) {
         View root = inflater.inflate(R.layout.fragment_camera_scan, container, false);
-        db = Room.databaseBuilder(requireContext(), AppDatabase.class, "app-db").allowMainThreadQueries().build();
+        _dbService = new DatabaseService(requireContext());
         layout = root.findViewById(R.id.cameraScanFragment);
         previewView = root.findViewById(R.id.scannerPreview);
         _progressbar = root.findViewById(R.id.textProgressBar);
@@ -134,7 +136,6 @@ public class QrCode extends Fragment {
     public void setupCamera() {
         try {
             lifeCycleCameraController.bindToLifecycle(this);
-            Set<String> scannedLocations = new HashSet<String>();
 
             CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
             ResolutionSelector resolutionSelector = lifeCycleCameraController.getImageCaptureResolutionSelector();
@@ -156,43 +157,27 @@ public class QrCode extends Fragment {
                 @Override
                 public void analyze(@NonNull ImageProxy imageProxy) {
                     Image mediaImage = imageProxy.getImage();
-
-                    if (mediaImage == null) {
-                        imageProxy.close();
-                    }
-
+                    if (mediaImage == null) imageProxy.close();
                     InputImage image = InputImage.fromMediaImage(mediaImage, imageProxy.getImageInfo().getRotationDegrees());
 
-                    //##################### REMOVAL OF NAME ######## ID ONLY ###########################
                     scanner.process(image)
                             .addOnSuccessListener(barcodes -> {
                                 for (Barcode barcode : barcodes) {
                                     if (barcode.getRawValue() != null) {
-                                        String[] locationArray = barcode.getDisplayValue().split(",");
-                                        String locationId;
-                                        String locationName;
+                                        String locationId = barcode.getDisplayValue();
+                                        if (locationId == null || locationId.isEmpty()) continue;
 
-                                        if (locationArray.length == 2) {
-                                            locationId = locationArray[0].split(":")[1];
-                                            locationName = locationArray[1].split(":")[1];
-                                            if (!scannedLocations.contains(locationId)) {
-                                                scannedLocations.add(locationId);
-                                                ActiveLocation activeLocation = new ActiveLocation();
-
-                                                activeLocation.Name = locationName;
-                                                activeLocation.Id = locationId;
-
-                                                vm.setActiveLocation(activeLocation);
-                                                scannedLocations.clear();
-
-                                                Toast.makeText(requireContext(), "Found: "+activeLocation.Name, Toast.LENGTH_SHORT).show();
-                                                _progressbar.setVisibility(View.INVISIBLE);
-                                                _navUtil.navigateWithoutBundle(R.id.locationListContainerFragment);
+                                        Location location = _dbService.getLocation(locationId.trim());
+                                        if (location == null) continue;
+                                        if (!success) {
+                                            success = true;
+                                            vm.setScannedLocationFromQr(location);
+                                            Toast.makeText(requireContext(), "Found: " + location.Name, Toast.LENGTH_SHORT).show();
+                                            _progressbar.setVisibility(View.INVISIBLE);
+                                            _navUtil.navigateWithoutBundle(R.id.locationListContainerFragment);
                                             }
                                         }
-
                                     }
-                                }
                             })
                             .addOnFailureListener(e -> {
                                 _progressbar.setVisibility(View.VISIBLE);
@@ -200,8 +185,6 @@ public class QrCode extends Fragment {
                             .addOnCompleteListener(task -> {
                                 imageProxy.close();
                             });
-
-
                 }
             });
 
@@ -221,6 +204,7 @@ public class QrCode extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        success = false;
         if (ContextCompat.checkSelfPermission(requireContext(), CAMERAPERMISSION) == PackageManager.PERMISSION_GRANTED) {
             setupCamera();
         }

@@ -193,10 +193,6 @@ public class AddItem extends Fragment {
             String quantityText = editTextQuantity.getText().toString().trim();
 
 
-            if (calendar.getVisibility() == View.GONE) {
-                selectedDate = null;
-            }
-
             // Validierung
             if (nameString.isEmpty() || quantityText.isEmpty() || locationId.isEmpty()) {
                 Toast.makeText(requireContext(), "Not Completed", Toast.LENGTH_SHORT).show();
@@ -278,7 +274,6 @@ public class AddItem extends Fragment {
             calendar.setDate(selectedDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
         }
         setLatestClicked();
-
         vm.setTextMlScanned(null);
     }
     @Override

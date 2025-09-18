@@ -6,30 +6,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RegexSearch<E> {
+    private RegexSearch() {}
 
-    private DatabaseService _dbService;
-
-    public RegexSearch(DatabaseService dbService) {
-        this._dbService = dbService;
-    }
-
-    public List<? extends NameAccess> search(String query, Boolean isLocation) {
+    public static List<? extends NameAccess> search(String query, Boolean isLocation, List<? extends NameAccess> randomList) {
         if (isLocation) {
-            List<Location> locations = _dbService.getAllLocations();
-            return searchFromList(locations, query);
+            return searchFromList(randomList, query);
 
         } else {
-            List<? extends NameAccess> items = _dbService.getAllItems();
-            return searchFromList(items, query);
+            return searchFromList(randomList, query);
         }
     }
 
-    private <E extends NameAccess> List<? extends NameAccess> searchFromList(List<E> mapList, String query) {
-        Pattern pattern = Pattern.compile(query.trim().toLowerCase(), Pattern.CASE_INSENSITIVE);
+    private static <E extends NameAccess> List<? extends NameAccess> searchFromList(List<E> mapList, String query) {
+        Pattern pattern = Pattern.compile(query, Pattern.CASE_INSENSITIVE);
         List<E> matchingList = new ArrayList<>();
         for (E entry : mapList) {
             if (entry != null) {
-                String name = entry.getname().trim().toLowerCase();
+                String name = entry.getname();
                 Matcher matcher = pattern.matcher(name);
                 if (matcher.find()) {
                     matchingList.add(entry);

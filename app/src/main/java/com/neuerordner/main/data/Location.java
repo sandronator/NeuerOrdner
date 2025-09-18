@@ -22,7 +22,6 @@ public class Location implements NameAccess, Comparable<Location>, Parcelable {
     @NonNull
 
     public String Name;
-    @ColumnInfo(defaultValue = "")
     @NonNull
     public OffsetDateTime CreationDate;
 
@@ -41,9 +40,17 @@ public class Location implements NameAccess, Comparable<Location>, Parcelable {
         this.Id = UUID.randomUUID().toString();
     }
 
+    public Location(String id, String name) {
+        this.Id = id;
+        this.Name = name;
+        this.CreationDate = OffsetDateTime.now();
+
+    }
+
     protected Location(Parcel in) {
         Id = in.readString();
         Name = in.readString();
+        CreationDate = DateTimeConverter.DateTimeFromString(in.readString());
     }
 
     public static final Creator<Location> CREATOR = new Creator<Location>() {
